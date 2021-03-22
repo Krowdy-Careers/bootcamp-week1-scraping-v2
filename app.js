@@ -149,9 +149,9 @@ const scanningProfiles = async () => {
             const educationItems = document.querySelectorAll(selector.list)
             const educationArray = Array.from(educationItems)
             const educations = educationArray.map(el=>{
-                const institution = el.querySelector(selector.institution).innerText
-                const career = el.querySelector(selector.career).innerText
-                const date = el.querySelector(selector.date).innerText
+                const institution = el.querySelector(selector.institution)?.innerText
+                const career = el.querySelector(selector.career)?.innerText
+                const date = el.querySelector(selector.date)?.innerText
                 return {institution,career,date}
             })
             return educations
@@ -168,26 +168,19 @@ const scanningProfiles = async () => {
             pre.id = "krowdy-pre"
             pre.style = stylePre
     
-            const button = document.createElement('button')
-            
-            button.id = "krowdy-button"
-            button.style = "background: gray;border: 2px solid;padding: 8px;"
-            button.innerText ="Aceptar"
-    
             const bodyElement = document.querySelector('div.body')
             
             bodyElement.appendChild(div)
     
             pre.innerText = "Estamos extrayendo la información!!!!"
             div.appendChild(pre)
-            div.appendChild(button)
-            return {div,pre,button}
+            return {div,pre}
         }
         
         //Scroll to all information
-        const {div,pre,button} = createPopup()
+        const {div,pre} = createPopup()
     
-        pre.innerText = 'Scaneando el perfil'
+        pre.innerText = 'Escaneando el perfil'
         await autoscrollToElement('body')
         await clickOnMoreResume()
         
@@ -203,22 +196,27 @@ const scanningProfiles = async () => {
         //Setting data to send information
         const profile = {...personalInformation, experiences:experienceInformation, educations:educationInformation }
         pre.innerText = JSON.stringify(profile,null,2)
+        
+        history.go(-1);
+        submitProfile(profile);
     
-        button.addEventListener("click",()=>{
-            //Necesito el fetch
-            history.go(-1);
-            var t4 = setInterval(function (){
-                if(document.getElementsByClassName('reusable-search__result-container ').length) {
-                    clearInterval(t4);
-                    listProfile();
-                }
-            }, 1000);
-            div.remove()
-        })
+        var t4 = setInterval(function (){
+            if(document.getElementsByClassName('reusable-search__result-container ').length) {
+                clearInterval(t4)
+                console.log(lastLink)
+                listProfile()
+                div.remove()
+            }
+        }, 1000);
+
     }
 
+    const submitProfile = (profile) => {
+        alert("Enviar datos a base de datos");
+    }
+    
     const gotoNext = async () => {
-        let initialLink = window.location.search;
+        let initialLink = window.location.search
         if(document.getElementsByClassName('artdeco-pagination__button artdeco-pagination__button--next artdeco-button artdeco-button--muted artdeco-button--icon-right artdeco-button--1 artdeco-button--tertiary ember-view').length && !document.getElementsByClassName('artdeco-pagination__button artdeco-pagination__button--next artdeco-button artdeco-button--muted artdeco-button--icon-right artdeco-button--1 artdeco-button--tertiary ember-view')[0].disabled){
             let nextButton = document.getElementsByClassName('artdeco-pagination__button artdeco-pagination__button--next artdeco-button artdeco-button--muted artdeco-button--icon-right artdeco-button--1 artdeco-button--tertiary ember-view')[0];
             nextButton.click();
@@ -238,43 +236,39 @@ const scanningProfiles = async () => {
 
     const listProfile = async () => {
         let results = document.getElementsByClassName('reusable-search__result-container');
-        for(let i = 0; i <= results.length; i++) {
-            if(lastLink >= results.length-1){
-                lastLink = -1;
-                gotoNext();
-            }
-            else{
-                lastLink++;
-                if(results[lastLink]){
-                    let a = results[lastLink].getElementsByClassName('linked-area')[0];
-                    let initialLink = window.location.href;
-                    if(a){
-                        if(a.getAttribute('href') == '#'){
-                            listProfile();
-                            return;
+        if(lastLink >= results.length-1){
+            lastLink = -1;
+            gotoNext();
+        }
+        else{
+            lastLink++;
+            if(results[lastLink]){
+                let a = results[lastLink].getElementsByClassName('linked-area')[0];
+                let initialLink = window.location.href;
+                if(a){
+                    if(a.getAttribute('href') == '#'){
+                        listProfile();
+                        return;
+                    }
+                    a.click();
+                    let tm = setInterval(function (){
+                    
+                        if(window.location.href != initialLink){
+                            clearInterval(tm);
+                            scrapingProfile();
                         }
-                        a.click();
-                        let tm = setInterval(function (){
-                        
-                            if(window.location.href != initialLink){
-                                clearInterval(tm);
-                                scrapingProfile();
-                                console.log(lastLink);
-                            }
-                        },2000);
-                    }
-                    else{
-                        lastLink--;
-                        new listProfile();
-                    }
+                    },1000);
+                }
+                else{
+                    lastLink--;
+                    listProfile();
                 }
             }
         }
     }
     
     listProfile()
-    
-    await wait(2000)
+    await wait(1000)
 
 }
 
