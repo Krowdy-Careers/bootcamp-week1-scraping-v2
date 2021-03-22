@@ -1,12 +1,8 @@
-let btnscrap = document.getElementById('btnscrap')
+const btnscanprofile = document.getElementById('btnscanprofile');
 
-btnscrap.addEventListener('click', async ()=>{
+btnscanprofile.addEventListener('click', async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-    var port = chrome.tabs.connect(tab.id);
-    port.postMessage({acction: 'scraping'});
-})
-
-
-
-
+    const port = chrome.tabs.connect(tab.id);
+    console.log('connected ', port);
+    port.postMessage({acction: 'scanning'});
+  });
