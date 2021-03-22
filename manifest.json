@@ -10,7 +10,15 @@
     }
   ],
   "action": {
-      "default_popup": "./App/index.html"
+      "default_popup": "./App/index.html",
+      "default_icon": {
+        "32": "./App/Image/32.png",
+        "48": "./App/Image/48.png"
+      }
   },
-  "permissions": ["activeTab", "scripting", "storage"]
+  "permissions": ["activeTab", "scripting", "storage"],
+  "icons": {
+    "32": "./App/Image/32.png",
+    "48": "./App/Image/48.png"
+  }
 }
