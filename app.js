@@ -200,7 +200,6 @@ const scanningProfiles = async () => {
         history.go(-1);
         console.log(JSON.stringify(profile,null,2));
         submitProfile(profile);
-        const count = document.getElementById('count').value();
         var t4 = setInterval(function (){
             if(document.getElementsByClassName('reusable-search__result-container ').length <= 2) {
                 clearInterval(t4)
@@ -209,7 +208,7 @@ const scanningProfiles = async () => {
                 listProfile()
                 div.remove()
             }
-        }, 10);
+        }, 1);
 
     }
 
@@ -230,7 +229,7 @@ const scanningProfiles = async () => {
                     new start();
                 }
                 else counter++;
-            }, 10);
+            }, 1);
         }
         else {
             // alert("All done!");
@@ -260,7 +259,7 @@ const scanningProfiles = async () => {
                             clearInterval(tm);
                             scrapingProfile();
                         }
-                    },10);
+                    },1);
                 }
                 else{
                     lastLink--;
