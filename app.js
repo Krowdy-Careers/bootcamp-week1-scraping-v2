@@ -204,7 +204,6 @@ const scanningProfiles = async () => {
             if(document.getElementsByClassName('reusable-search__result-container ').length <= 2) {
                 clearInterval(t4)
                 console.log(lastLink)
-                console.log(count)
                 listProfile()
                 div.remove()
             }
