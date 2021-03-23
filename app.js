@@ -191,23 +191,25 @@ const scanningProfiles = async () => {
         
         
         pre.innerText = 'Ya tenemos las información del perfil'
-        await wait(1000)
+        await wait(10)
     
         //Setting data to send information
         const profile = {...personalInformation, experiences:experienceInformation, educations:educationInformation }
         pre.innerText = JSON.stringify(profile,null,2)
         
         history.go(-1);
+        console.log(JSON.stringify(profile,null,2));
         submitProfile(profile);
-    
+        const count = document.getElementById('count').value();
         var t4 = setInterval(function (){
             if(document.getElementsByClassName('reusable-search__result-container ').length) {
                 clearInterval(t4)
                 console.log(lastLink)
+                console.log(count)
                 listProfile()
                 div.remove()
             }
-        }, 1000);
+        }, 10);
 
     }
 
@@ -227,7 +229,7 @@ const scanningProfiles = async () => {
                     new start();
                 }
                 else counter++;
-            }, 1000);
+            }, 10);
         }
         else {
             // alert("All done!");
@@ -257,7 +259,7 @@ const scanningProfiles = async () => {
                             clearInterval(tm);
                             scrapingProfile();
                         }
-                    },1000);
+                    },10);
                 }
                 else{
                     lastLink--;
@@ -268,7 +270,7 @@ const scanningProfiles = async () => {
     }
     
     listProfile()
-    await wait(1000)
+    await wait(10)
 
 }
 
