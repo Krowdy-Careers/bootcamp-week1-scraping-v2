@@ -1,6 +1,6 @@
 //var global
 let lastLink = -1;
-
+let list = [];
 //scanningProfiles
 const scanningProfiles = async () => {
     //Utils
@@ -37,7 +37,7 @@ const scanningProfiles = async () => {
                 if(maxScrollTop == currentScrollTop || elementScrollTop <= currentScrollTop)
                     break;
         
-                await wait(32)
+                await wait(1)
         
                 let newScrollTop = Math.min(currentScrollTop + 20, maxScrollTop);
                 window.scrollTo(0,newScrollTop)
@@ -191,7 +191,7 @@ const scanningProfiles = async () => {
         
         
         pre.innerText = 'Ya tenemos las información del perfil'
-        await wait(10)
+        await wait(1)
     
         //Setting data to send information
         const profile = {...personalInformation, experiences:experienceInformation, educations:educationInformation }
@@ -202,7 +202,7 @@ const scanningProfiles = async () => {
         submitProfile(profile);
         const count = document.getElementById('count').value();
         var t4 = setInterval(function (){
-            if(document.getElementsByClassName('reusable-search__result-container ').length) {
+            if(document.getElementsByClassName('reusable-search__result-container ').length <= 2) {
                 clearInterval(t4)
                 console.log(lastLink)
                 console.log(count)
@@ -214,7 +214,8 @@ const scanningProfiles = async () => {
     }
 
     const submitProfile = (profile) => {
-        alert("Enviar datos a base de datos");
+       list.push(profile)
+       console.log(JSON.stringify(list,null,2));
     }
     
     const gotoNext = async () => {
@@ -270,7 +271,7 @@ const scanningProfiles = async () => {
     }
     
     listProfile()
-    await wait(10)
+    await wait(1)
 
 }
 
