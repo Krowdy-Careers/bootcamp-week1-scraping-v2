@@ -176,6 +176,21 @@ const scrapingProfile = async () => {
     }
 
     const { div, pre, button } = await createPopup();
+
+    const setProfilesData = async () => {
+        let profilesData;
+
+        if (window.localStorage.getItem('profilesData') !== null) {
+            profilesData = await JSON.parse(window.localStorage.getItem('profilesData'));
+        } else {
+            profilesData = [];
+        }
+
+        profilesData =  [ ...profilesData, { personalInformation, experienceInformation, educationInformation } ];
+        window.localStorage.setItem('profilesData', JSON.stringify(profilesData));
+        pre.innerText = JSON.stringify(JSON.parse(window.localStorage.getItem('profilesData')), null, 2);
+        console.log(JSON.parse(window.localStorage.getItem('profilesData')));
+    }
     
     await wait(2000).then(() => {
         pre.innerText = 'Scanning profile...';
@@ -197,32 +212,12 @@ const scrapingProfile = async () => {
     */
 
     await wait(3000).then(() => {
-
-        let profilesData;
-
-        if (window.localStorage.getItem('profilesData') !== null) {
-            profilesData = JSON.parse(window.localStorage.getItem('profilesData'));
-        } else {
-            profilesData = [];
-        }
-
-        profilesData =  [ ...profilesData, { personalInformation, experienceInformation, educationInformation } ];
-        window.localStorage.setItem('profilesData', JSON.stringify(profilesData));
-        pre.innerText = JSON.stringify(JSON.parse(window.localStorage.getItem('profilesData')), null, 2);
-        console.log(JSON.parse(window.localStorage.getItem('profilesData')));
+        setProfilesData();
     });
 
     button.addEventListener("click", () => {
         div.remove();
     });
-}
-
-const newTab = (urlTo) => {
-    // const profileHash = 'scrap';
-    let url = new URL(urlTo);
-    // url.hash = `${profileHash}`;
-    const goToProfile = window.open(url);
-    goToProfile.focus();
 }
 
 // Gets the list of profiles and stores the array
@@ -237,51 +232,60 @@ const scanningProfiles = async () => {
         return ( profileLink )
     });
 
+    console.log(profilesList);
+
     if(profilesList.length > 0) {
         window.localStorage.removeItem('profilesData');
         window.localStorage.setItem('profilesList', JSON.stringify(profilesList));
-        window.location.href = profilesList[0];
+        // window.location.href = profilesList[0];
     }
 }
 
-( async () => {
-    chrome.runtime.onConnect.addListener(function(port) {
-        port.onMessage.addListener(function(message) {
-            const { action } = message;
+/*
+    Compare the current URL with the array of profiles.
+    In case of a match, scrapingProfile() is executed and the current URL is removed from the array.
+    If there are still elements, go to the next URL, otherwise, the array of profiles is removed.
+*/
 
-            switch ( action ) {
-                case 'scanning':
-                    window.localStorage.clear();
-                    scanningProfiles();
-                    break;
+(async function() {
+    chrome.runtime.onConnect.addListener(async function(port) {
+        port.onMessage.addListener(async function(message) {
+            const { action } = message;
+            // alert("App.js action: "+ action);
+            if(action == 'scanning') {
+                window.localStorage.clear();
+                await scanningProfiles();
+                // Save profiles list array
+                // const list = await scanningProfiles();
+                const list = [];
+                // chrome.runtime.sendMessage({action: 'endScan'})
+                port.postMessage({action:'endScan', list}); // Doesn't work. Why? :(
+            } else if(action == 'scraping') {
+                alert('Entra al action scraping')
+                const getProfilesListLS = JSON.parse(window.localStorage.getItem('profilesList'));
+                window.location.href = getProfilesListLS[0];
             }
         });
     });
-
-    /*
-        Compare the current URL with the array of profiles.
-        In case of a match, scrapingProfile() is executed and the current URL is removed from the array.
-        If there are still elements, a new tab is opened with the next URL, otherwise, the array of profiles is removed.
-    */
 
     try {
 
         if (window.localStorage.getItem('profilesList') !== null) {
             const currentURL = window.location.href;
-            const getProfileListLS = JSON.parse(window.localStorage.getItem('profilesList'));
+            const getProfilesListLS = JSON.parse(window.localStorage.getItem('profilesList'));
             const currentProfile = currentURL.substring(0, currentURL.length - 1);
-            const currentProfileIndex = getProfileListLS.indexOf(currentProfile);
+            const currentProfileIndex = getProfilesListLS.indexOf(currentProfile);
 
-            if (getProfileListLS.includes(currentProfile)) {
+            if (getProfilesListLS.includes(currentProfile)) {
                 await scrapingProfile();
 
                 wait(3000).then(() => {
                     if (currentProfileIndex > - 1 ) {
-                        getProfileListLS.splice(currentProfileIndex, 1);
-                        window.localStorage.setItem('profilesList', JSON.stringify(getProfileListLS) );
+                        getProfilesListLS.splice(currentProfileIndex, 1);
+                        window.localStorage.setItem('profilesList', JSON.stringify(getProfilesListLS) );
 
-                        if (getProfileListLS.length > 0) {
-                            window.location.href = getProfileListLS[0];
+                        if (getProfilesListLS.length > 0) {
+                            window.location.href = getProfilesListLS[0];
                         } else {
                             localStorage.removeItem('profilesList');
                         }
