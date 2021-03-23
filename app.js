@@ -6,11 +6,26 @@ const wait = function (milliseconds) {
     });
 };
 
-const autoScroll = (scrollTo) => {
-    window.scroll({
-        top: scrollTo,
-        left: 0,
-        behavior: 'smooth'
+const autoScroll = async (scrollTo) => {
+
+    const exists = document.querySelector(scrollTo);
+
+    while(exists) {
+        let maxScrollTop = document.body.clientHeight - window.innerHeight;
+        let elementScrollTop = document.querySelector(scrollTo).offsetHeight;
+        let currentScrollTop = window.scrollY;
+
+        if(maxScrollTop == currentScrollTop || elementScrollTop <= currentScrollTop)
+        break;
+            
+        await wait(32);
+
+        let newScrollTop = Math.min(currentScrollTop + 20, maxScrollTop);
+        window.scrollTo(0, newScrollTop);
+    }
+
+    return new Promise(function(resolve) {
+        resolve();
     });
 }
 
@@ -26,7 +41,6 @@ const scrapingProfile = async () => {
 
     const getPersonalInformation = async () => {
         try {
-            await clickOnMoreResume();
             const name = document.querySelector("div.ph5.pb5 > div.display-flex.mt2 ul li")?.innerText;
             const title = document.querySelector("div.ph5.pb5 > div.display-flex.mt2 h2")?.innerText;
             const location = document.querySelector("ul.pv-top-card--list-bullet > li")?.innerText;
@@ -48,7 +62,6 @@ const scrapingProfile = async () => {
     
     const getExperienceInformation = async () => {
         try {
-            await clickOnMoreExperience();
             const elementAllExperience = document.querySelectorAll("ul.pv-profile-section__section-info > li > section");
             const experienceArray = Array.from(elementAllExperience);
     
@@ -115,7 +128,6 @@ const scrapingProfile = async () => {
 
     const getEducationInformation = async () => {
         try {
-            await clickOnMoreEducation();
             const elementAllEducation = document.querySelectorAll("section#education-section > ul.pv-profile-section__section-info > li");
             const educationArray = Array.from(elementAllEducation);
     
@@ -165,14 +177,13 @@ const scrapingProfile = async () => {
 
     const { div, pre, button } = await createPopup();
     
-    await wait(1500).then(() => {
-        autoScroll(2000);
-    });
-
-    await wait(1500).then(() => {
-        autoScroll(document.body.scrollHeight);
+    await wait(2000).then(() => {
         pre.innerText = 'Scanning profile...';
     })
+    await autoScroll('body');
+    await clickOnMoreResume();
+    await clickOnMoreExperience();
+    await clickOnMoreEducation();
 
     const personalInformation = await getPersonalInformation();
     const experienceInformation = await getExperienceInformation();
@@ -186,20 +197,19 @@ const scrapingProfile = async () => {
     */
 
     await wait(3000).then(() => {
+
+        let profilesData;
+
         if (window.localStorage.getItem('profilesData') !== null) {
-            let profilesData = JSON.parse(window.localStorage.getItem('profilesData'));
-            profilesData = [ ...profilesData, { personalInformation, experienceInformation, educationInformation } ];
-            window.localStorage.setItem('profilesData', JSON.stringify(profilesData));
-            pre.innerText = JSON.stringify(JSON.parse(window.localStorage.getItem('profilesData')), null, 2);
-            console.log(JSON.parse(window.localStorage.getItem('profilesData')));
-            
+            profilesData = JSON.parse(window.localStorage.getItem('profilesData'));
         } else {
-            let profilesData = [];
-            profilesData =  [ ...profilesData, { personalInformation, experienceInformation, educationInformation } ];
-            window.localStorage.setItem('profilesData', JSON.stringify(profilesData));
-            pre.innerText = JSON.stringify(JSON.parse(window.localStorage.getItem('profilesData')), null, 2);
-            console.log(JSON.parse(window.localStorage.getItem('profilesData')));
+            profilesData = [];
         }
+
+        profilesData =  [ ...profilesData, { personalInformation, experienceInformation, educationInformation } ];
+        window.localStorage.setItem('profilesData', JSON.stringify(profilesData));
+        pre.innerText = JSON.stringify(JSON.parse(window.localStorage.getItem('profilesData')), null, 2);
+        console.log(JSON.parse(window.localStorage.getItem('profilesData')));
     });
 
     button.addEventListener("click", () => {
@@ -230,7 +240,7 @@ const scanningProfiles = async () => {
     if(profilesList.length > 0) {
         window.localStorage.removeItem('profilesData');
         window.localStorage.setItem('profilesList', JSON.stringify(profilesList));
-        newTab(profilesList[0]);
+        window.location.href = profilesList[0];
     }
 }
 
@@ -240,10 +250,6 @@ const scanningProfiles = async () => {
             const { action } = message;
 
             switch ( action ) {
-                case 'scraping':
-                    window.localStorage.clear();
-                    scrapingProfile();
-                    break;
                 case 'scanning':
                     window.localStorage.clear();
                     scanningProfiles();
@@ -259,9 +265,9 @@ const scanningProfiles = async () => {
     */
 
     try {
-        const currentURL = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
 
         if (window.localStorage.getItem('profilesList') !== null) {
+            const currentURL = window.location.href;
             const getProfileListLS = JSON.parse(window.localStorage.getItem('profilesList'));
             const currentProfile = currentURL.substring(0, currentURL.length - 1);
             const currentProfileIndex = getProfileListLS.indexOf(currentProfile);
@@ -270,12 +276,12 @@ const scanningProfiles = async () => {
                 await scrapingProfile();
 
                 wait(3000).then(() => {
-                    if (getProfileListLS.indexOf(currentProfile) > - 1 ) {
+                    if (currentProfileIndex > - 1 ) {
                         getProfileListLS.splice(currentProfileIndex, 1);
                         window.localStorage.setItem('profilesList', JSON.stringify(getProfileListLS) );
 
                         if (getProfileListLS.length > 0) {
-                            newTab(getProfileListLS[0]);
+                            window.location.href = getProfileListLS[0];
                         } else {
                             localStorage.removeItem('profilesList');
                         }
