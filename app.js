@@ -197,8 +197,8 @@ const scanningProfiles = async () => {
         const profile = {...personalInformation, experiences:experienceInformation, educations:educationInformation }
         pre.innerText = JSON.stringify(profile,null,2)
         
-        history.go(-1);
-        console.log(JSON.stringify(profile,null,2));
+        history.back
+        console.log(JSON.stringify(profile,null,2))
         submitProfile(profile);
         var t4 = setInterval(function (){
             if(document.getElementsByClassName('reusable-search__result-container ').length <= 2) {
