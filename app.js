@@ -177,6 +177,11 @@ const scrapingProfile = async () => {
 
     const { div, pre, button } = await createPopup();
 
+    /*
+        If profilesData exists, it's updated with the information from the current profile.
+        Otherwise, we create a new array to add the information and replace profilesData with it.
+    */
+
     const setProfilesData = async () => {
         let profilesData;
 
@@ -189,12 +194,12 @@ const scrapingProfile = async () => {
         profilesData =  [ ...profilesData, { personalInformation, experienceInformation, educationInformation } ];
         window.localStorage.setItem('profilesData', JSON.stringify(profilesData));
         pre.innerText = JSON.stringify(JSON.parse(window.localStorage.getItem('profilesData')), null, 2);
-        console.log(JSON.parse(window.localStorage.getItem('profilesData')));
     }
     
     await wait(2000).then(() => {
         pre.innerText = 'Scanning profile...';
-    })
+    });
+
     await autoScroll('body');
     await clickOnMoreResume();
     await clickOnMoreExperience();
@@ -205,11 +210,6 @@ const scrapingProfile = async () => {
     const educationInformation = await getEducationInformation();
 
     pre.innerText = 'We have the profile information';
-
-    /*
-        If profilesData exists, it's updated with the information from the current profile.
-        Otherwise, we create a new array to add the information and replace profilesData with it.
-    */
 
     await wait(3000).then(() => {
         setProfilesData();
@@ -235,38 +235,31 @@ const scanningProfiles = async () => {
     console.log(profilesList);
 
     if(profilesList.length > 0) {
-        window.localStorage.removeItem('profilesData');
         window.localStorage.setItem('profilesList', JSON.stringify(profilesList));
-        // window.location.href = profilesList[0];
     }
 }
-
-/*
-    Compare the current URL with the array of profiles.
-    In case of a match, scrapingProfile() is executed and the current URL is removed from the array.
-    If there are still elements, go to the next URL, otherwise, the array of profiles is removed.
-*/
 
 (async function() {
     chrome.runtime.onConnect.addListener(async function(port) {
         port.onMessage.addListener(async function(message) {
             const { action } = message;
-            // alert("App.js action: "+ action);
-            if(action == 'scanning') {
+
+            if (action == 'scanning') {
                 window.localStorage.clear();
                 await scanningProfiles();
-                // Save profiles list array
-                // const list = await scanningProfiles();
-                const list = [];
-                // chrome.runtime.sendMessage({action: 'endScan'})
-                port.postMessage({action:'endScan', list}); // Doesn't work. Why? :(
-            } else if(action == 'scraping') {
-                alert('Entra al action scraping')
+                port.postMessage({action: 'endScan'});
+            } else if(action == 'goToURL') {
                 const getProfilesListLS = JSON.parse(window.localStorage.getItem('profilesList'));
                 window.location.href = getProfilesListLS[0];
             }
         });
     });
+
+    /*
+        Compare the current URL with the array of profiles.
+        In case of a match, scrapingProfile() is executed and the current URL is removed from the array.
+        If there are still elements, go to the next URL, otherwise, the array of profiles is removed.
+    */
 
     try {
 

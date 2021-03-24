@@ -9,9 +9,10 @@
     port.onMessage.addListener(function (response) {
       const {action} = response;
 
-      if(action == 'endScan') {
-        port.postMessage({action: 'scraping'})
+      if (action == 'endScan') {
+        port.postMessage({action: 'goToURL'});
       }
+
     });
   });
 })();
