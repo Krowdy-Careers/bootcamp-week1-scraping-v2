@@ -1,12 +1,18 @@
-let btnscrap = document.getElementById('btnscrap')
+( async () => {
+  let btnScrapSearch = document.getElementById('btnScrapSearch');
 
-btnscrap.addEventListener('click', async ()=>{
+  btnScrapSearch.addEventListener('click', async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const port = chrome.tabs.connect(tab.id);
+    port.postMessage({action: 'scanning'});
+  
+    port.onMessage.addListener(function (response) {
+      const {action} = response;
 
-    var port = chrome.tabs.connect(tab.id);
-    port.postMessage({acction: 'scraping'});
-})
+      if (action == 'endScan') {
+        port.postMessage({action: 'goToURL'});
+      }
 
-
-
-
+    });
+  });
+})();
