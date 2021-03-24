@@ -271,7 +271,7 @@ const scrapingProfile = async ()=>{
             })
           }
           
-          else if (acction == "scrapingList"){ 
+          else if (acction == "scrapingListPagination"){ 
             scrapingList().then(result => {
                 port.postMessage({action: 'endPaginationList', listCandidates: result, index})
             })
