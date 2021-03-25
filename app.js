@@ -265,23 +265,13 @@ const scrapingProfile = async ()=>{
     chrome.runtime.onConnect.addListener((port) => {
         port.onMessage.addListener(function(msg) {
           const { acction } = msg
-          if(acction == "scrapingPagination") {
-            scrapingPagination().then(result => {
-                port.postMessage({action: 'endPagination', number: result})
-            })
-          }
           
-          else if (acction == "scrapingListPagination"){ 
-            scrapingList().then(result => {
-                port.postMessage({action: 'endPaginationList', listCandidates: result, index})
-            })
-          } 
-      
-          else if (acction == "scrapingList"){ 
+          if (acction == "scrapingList"){ 
                 scrapingList().then(result => {
                 port.postMessage({action: 'endListProfile', listCandidates: result})
             })
           } 
+          
           else if(acction == "scrapingProfile"){
             const { index } = msg
             scrapingProfile().then(result => {
