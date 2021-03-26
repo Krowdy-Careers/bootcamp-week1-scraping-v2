@@ -1,7 +1,7 @@
 {
-  "name": "linkedin comunication",
-  "description": "Extract Profile Yeh!",
-  "version": "1.1",
+  "name": "Linkedin Profiles Scanning",
+  "description": "Search Persons Profile and Extract Profile Yeh!",
+  "version": "1.2",
   "manifest_version": 3,
   "content_scripts": [
     {
@@ -10,13 +10,18 @@
     }
   ],
   "action":{
+    "default_title": "Scanning profile",
     "default_popup":"./App/index.html",
     "default_icon": {
       "32": "./App/Image/32.png",
       "48": "./App/Image/48.png"
     }
   },
-  "permissions": ["activeTab", "scripting"],
+  "permissions": [
+    "activeTab", 
+    "scripting", 
+    "storage"
+  ],
   "icons": {
     "32": "./App/Image/32.png",
     "48": "./App/Image/48.png"

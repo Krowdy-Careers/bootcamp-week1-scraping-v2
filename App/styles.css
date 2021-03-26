@@ -1,0 +1,55 @@
+body { 
+  background: #fff;
+  color: #202124;
+  margin: 0;
+  padding: 0;
+}
+
+label {
+  font-weight: 600;
+  padding-bottom: 10px;
+}
+
+h1 {
+  margin: 0;
+  padding: 10px;
+}
+
+input {
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px;
+}
+
+input:focus, input:hover {
+  border: 1px solid #f3953c;
+}
+
+.btn-scrap-profile {
+  background-color: #f3953c;
+  height: 30px;
+  width: 50%;
+  outline: none;
+  margin: 10px auto;
+  border: none;
+  border-radius: 2px;
+}
+
+.container {
+  background-color: #fef4eb;
+  height: 180px;
+  width: 300px;
+}
+.container-header {
+  text-align: center;
+  background-color: #051b0d;
+  color: white;
+}
+
+.container-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 20px;
+}

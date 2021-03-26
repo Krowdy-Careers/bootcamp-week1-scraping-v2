@@ -1,16 +1,18 @@
-const scrapingProfile = async ()=>{
-    //Utils
-    const wait = (milliseconds)=>{
-        return new Promise(function(resolve){
-            setTimeout(function() {
-                resolve();
-            }, milliseconds);
-        });
-    };
+//var global
+let lastLink = 0
+let listCandidates = []
+let cantPag = 0;
+const scrapingPagination = async() => {
+    
+    const waitScrapingPagination =  async (milliseconds) => {
+        await new Promise((resolve) => {
+            setTimeout(resolve, milliseconds)
+        })
+    }
 
     const autoscrollToElement = async function(cssSelector){
-
-        var exists = document.querySelector(cssSelector);
+    
+        let exists = document.querySelector(cssSelector);
     
         while(exists){
             //
@@ -22,7 +24,7 @@ const scrapingProfile = async ()=>{
             if(maxScrollTop == currentScrollTop || elementScrollTop <= currentScrollTop)
                 break;
     
-            await wait(32)
+            await waitScrapingPagination(10)
     
             let newScrollTop = Math.min(currentScrollTop + 20, maxScrollTop);
             window.scrollTo(0,newScrollTop)
@@ -35,7 +37,106 @@ const scrapingProfile = async ()=>{
         });
     };
 
-    //Logic
+    await autoscrollToElement('body')
+    const items = document.querySelectorAll('.artdeco-pagination__indicator.artdeco-pagination__indicator--number span')
+    //Setting data to send information
+    await waitScrapingPagination(10);
+    const number = items[items.length-1].innerText
+    return number
+}
+
+const scrapingList = async (number) => {
+    //Utils
+    const waitScrapingList = (milliseconds)=>{
+        return new Promise(function(resolve){
+            setTimeout(function() {
+                resolve()
+            }, milliseconds)
+        })
+    }
+    
+    const gotoNext = async () => {
+        let initialLink = window.location.search
+        if(document.getElementsByClassName('artdeco-pagination__button artdeco-pagination__button--next artdeco-button artdeco-button--muted artdeco-button--icon-right artdeco-button--1 artdeco-button--tertiary ember-view').length && !document.getElementsByClassName('artdeco-pagination__button artdeco-pagination__button--next artdeco-button artdeco-button--muted artdeco-button--icon-right artdeco-button--1 artdeco-button--tertiary ember-view')[0].disabled){
+            let nextButton = document.getElementsByClassName('artdeco-pagination__button artdeco-pagination__button--next artdeco-button artdeco-button--muted artdeco-button--icon-right artdeco-button--1 artdeco-button--tertiary ember-view')[0]
+            nextButton.click()
+            let counter = 0
+            let timer = setInterval(function (){
+                if(window.location.search != initialLink){
+                    clearInterval(timer)
+                    listProfile()
+                }
+                else counter++
+            }, 1)
+        }
+        else {
+            // alert("All done!")
+        }
+    }
+
+    const listProfile = async () => {
+        if(cantPag == number) {
+            let results = document.getElementsByClassName('reusable-search__result-container')
+            if(lastLink >= results.length-1){
+                lastLink = -1
+                cantPag++;
+                gotoNext()
+            }
+            else{
+                if(results[lastLink]){
+                    for(let i = 0; i <results.length; i++) {
+                        let a = results[lastLink].getElementsByClassName('app-aware-link')[0]
+                        await waitScrapingList(10)
+                        listCandidates.push(a.href)
+                        lastLink++
+                        await autoscrollToElementInit('body')
+                    }
+                }
+            }
+        }
+    }
+    await waitScrapingList(10)
+    listProfile()
+    return listCandidates
+}
+
+const scrapingProfile = async ()=>{
+    //Utils
+    const waitScrapingProfile = (milliseconds)=>{
+        return new Promise(function(resolve){
+            setTimeout(function() {
+                resolve()
+            }, milliseconds)
+        })
+    }
+
+    const autoscrollToElement = async function(cssSelector){
+    
+        let exists = document.querySelector(cssSelector);
+    
+        while(exists){
+            //
+            let maxScrollTop = document.body.clientHeight - window.innerHeight;
+            let elementScrollTop = document.querySelector(cssSelector).offsetHeight
+            let currentScrollTop = window.scrollY
+    
+    
+            if(maxScrollTop == currentScrollTop || elementScrollTop <= currentScrollTop)
+                break;
+    
+            await waitScrapingPagination(10)
+    
+            let newScrollTop = Math.min(currentScrollTop + 20, maxScrollTop);
+            window.scrollTo(0,newScrollTop)
+        }
+    
+        console.log('finish autoscroll to element %s', cssSelector);
+    
+        return new Promise(function(resolve){
+            resolve();
+        });
+    };
+
     const selectorProfile = {
         personalInformation:{
             name:"div.ph5.pb5 > div.display-flex.mt2 ul li",
@@ -109,7 +210,7 @@ const scrapingProfile = async ()=>{
             return {title,date,company,description}
         })
 
-        for(let i = 0; i< groupCompaniesList.length;i++){
+        for(let i = 0; i< groupCompaniesList.length; i++){
             const item = groupCompaniesList[i]
             const company = item.querySelector(selector.groupByCompany.company)?.innerText
             const itemsCompanyGroupList = item.querySelectorAll(selector.groupByCompany.list)
@@ -134,45 +235,14 @@ const scrapingProfile = async ()=>{
         const educationItems = document.querySelectorAll(selector.list)
         const educationArray = Array.from(educationItems)
         const educations = educationArray.map(el=>{
-            const institution = el.querySelector(selector.institution).innerText
-            const career = el.querySelector(selector.career).innerText
-            const date = el.querySelector(selector.date).innerText
+            const institution = el.querySelector(selector.institution)?.innerText
+            const career = el.querySelector(selector.career)?.innerText
+            const date = el.querySelector(selector.date)?.innerText
             return {institution,career,date}
         })
         return educations
     }
 
-    const createPopup = ()=>{
-        const styleDiv = "position: fixed;z-index: 2000;width:100%; top: 0px;left: 0px;overflow: visible;display: flex;align-items: flex-end;background-color: lightgray;font-size: 10px;padding: 10px;";
-        const stylePre = "position: relative;max-height: 400px;overflow: scroll;width: 100%;"
-        const div = document.createElement('div')
-        div.id = "krowdy-message"
-        div.style = styleDiv
-
-        const pre = document.createElement('pre')
-        pre.id = "krowdy-pre"
-        pre.style = stylePre
-
-        const button = document.createElement('button')
-        
-        button.id = "krowdy-button"
-        button.style = "background: gray;border: 2px solid;padding: 8px;"
-        button.innerText ="Aceptar"
-
-        const bodyElement = document.querySelector('div.body')
-        
-        bodyElement.appendChild(div)
-
-        pre.innerText = "Estamos extrayendo la información!!!!"
-        div.appendChild(pre)
-        div.appendChild(button)
-        return {div,pre,button}
-    }
-    
-    //Scroll to all information
-    const {div,pre,button} = createPopup()
-
-    pre.innerText = 'Scaneando el perfil'
     await autoscrollToElement('body')
     await clickOnMoreResume()
     
@@ -181,29 +251,36 @@ const scrapingProfile = async ()=>{
     const experienceInformation = await getExperienceInformation()
     const educationInformation = await getEducationInformation()
     
-    
-    pre.innerText = 'Ya tenemos las información del perfil'
-    await wait(1000)
+    await waitScrapingProfile(10)
 
     //Setting data to send information
     const profile = {...personalInformation, experiences:experienceInformation, educations:educationInformation }
-    pre.innerText = JSON.stringify(profile,null,2)
-
-    button.addEventListener("click",()=>{
-        //Necesito el fetch
-
-        div.remove()
-    })
+    
+    return profile
 }
-
-
 
 //Comunication
 (function(){
-chrome.runtime.onConnect.addListener(function(port) {
-    port.onMessage.addListener(function(msg) {
-      const {acction} = msg
-      console.log(acction)
-      if (acction=="scraping") scrapingProfile()
-    });
-  })})();
+    console.log("entrando nuevamente")
+    chrome.runtime.onConnect.addListener((port) => {
+        port.onMessage.addListener(function(msg) {
+          const { acction } = msg
+          
+          if (acction == "scrapingList"){ 
+                scrapingList().then(result => {
+                port.postMessage({action: 'endListProfile', listCandidates: result})
+            })
+          } 
+          
+          else if(acction == "scrapingProfile"){
+            const { index } = msg
+            scrapingProfile().then(result => {
+                port.postMessage({action: 'endProfile', profile: result, index})
+            })
+          } 
+          else if(acction =='show candidates')
+          {
+              showInformation(profile);
+          }
+        })
+})})()
